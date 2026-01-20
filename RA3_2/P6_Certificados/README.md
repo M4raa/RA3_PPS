@@ -113,4 +113,4 @@ Al navegar a http://www.m4raa.com, el servidor redirigirá automáticamente a ht
 
 La siguiente imagen confirma el acceso exitoso:
 
-![Captura de validación](image.png)
+![Captura de validación](assets/image.png)
