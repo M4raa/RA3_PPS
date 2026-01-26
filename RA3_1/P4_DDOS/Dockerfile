@@ -8,7 +8,7 @@ RUN mkdir -p /var/log/mod_evasive && \
     chown -R www-data:www-data /var/log/mod_evasive
 
 # 4. Copiamos nuestra configuración personalizada
-COPY evasive.conf /etc/apache2/mods-available/evasive.conf
+COPY conf/evasive.conf /etc/apache2/mods-available/evasive.conf
 
 # 5. Limpiamos la caché de apt para reducir el tamaño
 RUN rm -rf /var/lib/apt/lists/*

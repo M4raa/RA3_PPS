@@ -20,9 +20,8 @@ RUN sed -i 's|listen = /run/php/php.*-fpm.sock|listen = 127.0.0.1:9000|' /etc/ph
 
 # 5. Copia de archivos y permisos
 # Asegúrate de tener index.html e index.php en tu carpeta
-COPY default.conf /etc/nginx/conf.d/default.conf
-COPY index.html /var/www/html/
-COPY index.php /var/www/html/
+COPY conf/default.conf /etc/nginx/conf.d/default.conf
+COPY content/ /var/www/html/
 
 RUN chown -R www-data:www-data /var/www/html
 

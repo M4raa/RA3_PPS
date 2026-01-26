@@ -14,10 +14,10 @@ RUN mkdir -p /etc/apache2/ssl && \
     -subj "/C=ES/ST=Castellon/L=Castellon/O=M4raa/OU=IT/CN=www.m4raa.com"
 
 # 2. Copiar todas las configuraciones
-COPY m4raa.conf /etc/apache2/sites-available/m4raa.conf
-COPY hardening.conf /etc/apache2/conf-available/hardening.conf
-COPY security-headers.conf /etc/apache2/conf-available/security-headers.conf
-COPY modsecurity.conf /etc/modsecurity/modsecurity.conf
+COPY conf/m4raa.conf /etc/apache2/sites-available/m4raa.conf
+COPY conf/hardening.conf /etc/apache2/conf-available/hardening.conf
+COPY conf/security-headers.conf /etc/apache2/conf-available/security-headers.conf
+COPY conf/modsecurity.conf /etc/modsecurity/modsecurity.conf
 
 # 3. Habilitar módulos (incluyendo SSL) y configuraciones
 RUN a2enmod headers rewrite unique_id security2 ssl && \
@@ -30,7 +30,7 @@ RUN touch /var/log/apache2/modsec_audit.log && \
     chown www-data:www-data /var/log/apache2/modsec_audit.log
 
 # 5. Copiar contenido y asegurar permisos correctos
-COPY index.html /var/www/html/
+COPY content/ /var/www/html/
 RUN chown -R www-data:www-data /var/www/html && \
     chmod -R 755 /var/www/html
 

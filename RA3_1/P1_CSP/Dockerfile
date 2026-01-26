@@ -7,11 +7,11 @@ RUN a2dismod autoindex -f
 RUN a2enmod headers ssl
 
 # Copiar certificados digitales
-COPY apache-selfsigned.crt /etc/ssl/certs/
-COPY apache-selfsigned.key /etc/ssl/private/
+COPY SSL/apache-selfsigned.crt /etc/ssl/certs/
+COPY SSL/apache-selfsigned.key /etc/ssl/private/
 
 # Aplicar cabeceras y configurar sitio SSL
-COPY security-headers.conf /etc/apache2/conf-available/security-headers.conf
+COPY conf/security-headers.conf /etc/apache2/conf-available/security-headers.conf
 RUN a2enconf security-headers
 
 RUN sed -i 's|/etc/ssl/certs/ssl-cert-snakeoil.pem|/etc/ssl/certs/apache-selfsigned.crt|g' /etc/apache2/sites-available/default-ssl.conf && \
