@@ -1,40 +1,69 @@
-# Práctica 2: Web Application Firewall (ModSecurity)
+# Práctica 3.1.2: Web Application Firewall (ModSecurity)
 
-## 1. Descripción e Introducción
-El hardening de Apache incluye el uso de herramientas como **ModSecurity** para proteger el servidor contra ataques de inyección y otras amenazas comunes. En esta práctica se instala y activa este WAF sobre la base segura creada en la práctica anterior.
+## 1. Estructura de archivos
+El proyecto debe mantener esta jerarquía para que los comandos funcionen:
 
-## 2. Configuración Realizada
-* **Estrategia de Capas**: Se utiliza `m4raa/pps:pr1` como imagen base, heredando SSL, CSP, HSTS y la desactivación de autoindex.
-* **Activación del WAF**: Se ha instalado `libapache2-mod-security2` y se ha activado el motor de reglas configurando `SecRuleEngine On`.
+```text
+P2_WebApplicationFirewall/
+├── assets/
+│   └── image.png
+├── Dockerfile
+└── README.md
+```
+
+## 2. Descripción
+Esta práctica implementa un **WAF (Web Application Firewall)** sobre la base segura de la práctica anterior.
+
+* **Imagen Base**: Se utiliza `m4raa/pps:pr1` (Estrategia de capas/cascada).
+* **Módulo**: `mod_security2`.
+* **Configuración**: Se activa el `SecRuleEngine` para pasar de modo detección a modo bloqueo activo.
 
 ## 3. Dockerfile
+Configuración para instalar y activar el cortafuegos de aplicaciones:
+
 ```dockerfile
 FROM m4raa/pps:pr1
 
-# Instalar el módulo de seguridad ModSecurity
-RUN apt-get update && apt-get install -y libapache2-mod-security2
+# 1. Instalar ModSecurity y limpiar caché de apt para reducir tamaño
+RUN apt-get update && apt-get install -y libapache2-mod-security2 && \
+    rm -rf /var/lib/apt/lists/*
 
-# Configurar ModSecurity: cambiar de "DetectionOnly" a "On" (activo)
+# 2. Configurar ModSecurity: cambiar de "DetectionOnly" a "On" (bloqueo activo)
 RUN cp /etc/modsecurity/modsecurity.conf-recommended /etc/modsecurity/modsecurity.conf && \
     sed -i 's/SecRuleEngine DetectionOnly/SecRuleEngine On/' /etc/modsecurity/modsecurity.conf
+
+# 3. Asegurar la activación del módulo en Apache
+RUN a2enmod security2
 ```
 
-## 4. Instrucciones de Despliegue
-```bash
-# Construcción y subida a Docker Hub
-docker build -t m4raa/pps:pr2 .
-docker push m4raa/pps:pr2
+## 4. Despliegue y uso
 
-# Ejecución del contenedor
-docker run --detach --rm -p 8082:80 -p 8083:443 --name="waf_container" m4raa/pps:pr2
-```
+1. **Construir la imagen**:
+   ```bash
+   docker build -t m4raa/pps:pr2 .
+   ```
+
+2. **Subir a Docker Hub**:
+   ```bash
+   docker push m4raa/pps:pr2
+   ```
+
+3. **Ejecutar el contenedor**:
+   ```bash
+   docker run -d -p 42080:80 -p 42443:443 --name pps_pr2 m4raa/pps:pr2
+   ```
 
 ## 5. Validación
-Para verificar que el WAF está activo y cargado en Apache:
+Para verificar que el WAF está filtrando ataques, se lanza una petición maliciosa de inyección de archivos:
+
 ```bash
-curl -k -I "https://localhost:8083/index.html?exec=/etc/passwd"
+curl -k -I "https://localhost:42443/index.html?exec=/etc/passwd"
 ```
-![Captura de pantalla de la validación](assets/image.png)
+
+**Resultado esperado**: El servidor debe devolver un **HTTP/1.1 403 Forbidden**. Esto confirma que ModSecurity ha detectado la amenaza y ha bloqueado el acceso.
+
+**Evidencia de bloqueo**:
+![Validación WAF](assets/image.png)
 
 ## 6. URL Docker Hub
-Imagen disponible para pull en: [m4raa/pps:pr2](https://hub.docker.com/r/m4raa/pps)
+[m4raa/pps:pr2](https://hub.docker.com/repository/docker/m4raa/pps/tags/pr2)

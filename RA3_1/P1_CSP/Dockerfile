@@ -7,8 +7,8 @@ RUN a2dismod autoindex -f
 RUN a2enmod headers ssl
 
 # Copiar certificados digitales
-COPY SSL/apache-selfsigned.crt /etc/ssl/certs/
-COPY SSL/apache-selfsigned.key /etc/ssl/private/
+COPY ssl/apache-selfsigned.crt /etc/ssl/certs/
+COPY ssl/apache-selfsigned.key /etc/ssl/private/
 
 # Aplicar cabeceras y configurar sitio SSL
 COPY conf/security-headers.conf /etc/apache2/conf-available/security-headers.conf

@@ -1,18 +1,18 @@
 FROM m4raa/pps:pr2
 
-# 2. Instalamos git para bajar las reglas de SpiderLabs
+# 1. Instalar git para bajar las reglas
 RUN apt-get update && apt-get install -y git
 
-# 3. Clonamos el repositorio indicado en la práctica
+# 2. Clonar el repositorio oficial de reglas CRS
 RUN git clone https://github.com/SpiderLabs/owasp-modsecurity-crs.git /etc/modsecurity/owasp-modsecurity-crs
 
-# 4. Preparamos el archivo de configuración de las reglas
+# 3. Preparar el archivo de configuración de las reglas
 RUN mv /etc/modsecurity/owasp-modsecurity-crs/crs-setup.conf.example /etc/modsecurity/owasp-modsecurity-crs/crs-setup.conf
 
-# 5. Sustituimos el archivo de configuración de Apache por el nuestro
+# 4. Sustituir la configuración de carga de reglas en Apache
 COPY conf/security2.conf /etc/apache2/mods-available/security2.conf
 
-# 6. Limpiamos para reducir el tamaño de la imagen
+# 5. Limpieza de seguridad y reducción de tamaño
 RUN apt-get purge -y git && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 80 443

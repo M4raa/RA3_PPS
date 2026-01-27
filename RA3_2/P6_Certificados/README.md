@@ -1,19 +1,22 @@
-# Práctica 6 - Implementación de SSL en Apache (Docker)
+# Práctica 6: Implementación de SSL en Apache (Certs)
 
-Esta práctica consiste en la securización de un servidor Apache utilizando certificados SSL auto-firmados dentro de un contenedor Docker para el dominio personalizado www.m4raa.com.
+## 1. Estructura de archivos
+El proyecto debe estar organizado de la siguiente forma para un despliegue correcto:
 
-## 1. Estructura del Proyecto
+```text
+P6_Certificados/
+├── assets/
+│   └── image.png
+├── conf/
+│   └── m4raa.conf
+├── content/
+│   └── index.html
+├── Dockerfile
+└── README.md
+```
 
-El proyecto se compone de los siguientes archivos:
-* **m4raa.conf**: Archivo de configuración de Apache para la gestión de tráfico HTTP y HTTPS.
-* **Dockerfile**: Script de automatización para la creación de la imagen y generación de certificados.
-* **index.html**: Archivo de contenido web para la verificación del servicio.
-* **image.png**: Captura de pantalla que valida el funcionamiento del protocolo HTTPS en el navegador.
-
-## 2. Contenido de los Archivos de Configuración
-
-### m4raa.conf
-Este archivo define la redirección del puerto 80 al 443 y la configuración del motor SSL para el dominio www.m4raa.com.
+## 2. Configuración del Servidor (conf/m4raa.conf)
+Define la redirección forzosa al puerto 443 y la ruta de los certificados para el dominio `www.m4raa.com`.
 
 ```apache
 <VirtualHost *:80>
@@ -36,8 +39,8 @@ Este archivo define la redirección del puerto 80 al 443 y la configuración del
 </VirtualHost>
 ```
 
-### Dockerfile
-El Dockerfile utiliza una imagen base de PHP con Apache, habilita SSL y genera los certificados necesarios de forma automática durante la construcción.
+## 3. Dockerfile
+Construcción de la imagen basada en Apache con generación automática de certificados SSL.
 
 ```dockerfile
 FROM php:8.2-apache
@@ -50,67 +53,41 @@ RUN mkdir -p /etc/apache2/ssl && \
     -out /etc/apache2/ssl/apache.crt \
     -subj "/C=ES/ST=Castellon/L=Castellon/O=M4raa/OU=IT/CN=www.m4raa.com"
 
-COPY m4raa.conf /etc/apache2/sites-available/m4raa.conf
+COPY conf/m4raa.conf /etc/apache2/sites-available/m4raa.conf
 RUN a2dissite 000-default.conf && a2ensite m4raa.conf
 
-COPY index.html /var/www/html/
+COPY content/index.html /var/www/html/
 
 EXPOSE 80 443
 ```
 
-### index.html
-Contenido básico para mostrar una confirmación visual una vez establecida la conexión segura.
-
-```html
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <title>P6 - SSL</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            text-align: center;
-            padding-top: 50px;
-            background-color: #f0f8ff;
-        }
-
-        .lock {
-            font-size: 50px;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="lock">🔒</div>
-    <h1>Conexión Segura Establecida</h1>
-</body>
-
-</html>
-```
-
-## 3. Instrucciones de Despliegue
+## 4. Despliegue y uso
 
 ### Paso 1: Configuración de DNS Local
-Añada la siguiente línea al archivo de hosts de su sistema para redirigir el tráfico del dominio a la dirección local:
+Añada la siguiente línea al archivo de hosts de su sistema operativo:
+`127.0.0.1 www.m4raa.com`
 
-127.0.0.1 www.m4raa.com
+### Paso 2: Ejecución
+1. **Construir la imagen**:
+   ```bash
+   docker build -t m4raa/pps:pr6 .
+   ```
 
-### Paso 2: Construcción de la Imagen
-Ejecute el comando para construir la imagen de Docker en el directorio raíz del proyecto:
+2. **Ejecutar el contenedor (Puertos 46080 y 46443)**:
+   ```bash
+   docker run -d -p 46080:80 -p 46443:443 --name pps_pr6 m4raa/pps:pr6
+   ```
 
-docker build -t m4raa/pps:pr6 .
+3. **Subir a Docker Hub**:
+   ```bash
+   docker push m4raa/pps:pr6
+   ```
 
-### Paso 3: Despliegue del Contenedor
-Inicie el servidor mapeando los puertos 80 y 443:
+## 5. Validación
+Al navegar a `https://www.m4raa.com:46443`, el servidor presentará el certificado auto-firmado y mostrará la página de confirmación.
 
-docker run -d -p 80:80 -p 443:443 --name p6-server m4raa/pps:pr6
+**Evidencia de funcionamiento**:
+![Validación SSL](assets/image.png)
 
-## 4. Validación de la Práctica
-
-Al navegar a http://www.m4raa.com, el servidor redirigirá automáticamente a https://www.m4raa.com. Se deberá aceptar la excepción de seguridad en el navegador debido a que el certificado es auto-firmado.
-
-La siguiente imagen confirma el acceso exitoso:
-
-![Captura de validación](assets/image.png)
+## 6. URL Docker Hub
+[m4raa/pps:pr6](https://hub.docker.com/repository/docker/m4raa/pps/tags/pr6)

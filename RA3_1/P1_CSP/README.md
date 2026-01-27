@@ -1,27 +1,37 @@
-# Práctica 1: Apache Hardening - CSP, HSTS y SSL
+# Práctica 3.1.1: Apache Hardening - CSP, HSTS y SSL
 
-## 1. Introducción y Objetivos
-El hardening de servidores web consiste en mejorar la seguridad reduciendo vulnerabilidades y puntos de entrada. En esta práctica, se refuerza la seguridad de Apache para reducir la superficie de ataque implementando las siguientes medidas:
-* **Desactivación de módulos innecesarios**: Se deshabilita `autoindex` para evitar el listado de directorios.
-* **Uso de HTTPS (SSL/TLS)**: Se configura el servidor para cifrar las comunicaciones mediante certificados.
-* **Configuración de cabeceras de seguridad**: Implementación de **CSP** y **HSTS** para mitigar ataques como inyecciones y mejorar la integridad.
+## 1. Estructura de archivos
+El proyecto debe mantener esta jerarquía exacta para que el despliegue sea exitoso:
 
-## 2. Archivos de Configuración
+```text
+P1_CSP/
+├── assets/
+│   └── image.png
+├── conf/
+│   └── security-headers.conf
+├── ssl/
+│   ├── apache-selfsigned.crt
+│   └── apache-selfsigned.key
+├── Dockerfile
+└── README.md
+```
 
-### security-headers.conf
-Este archivo define las políticas que el servidor enviará a los navegadores de los clientes.
+## 2. Configuración de seguridad (security-headers.conf)
+Define las políticas para mitigar ataques XSS y forzar el uso de conexiones cifradas.
+
 ```apache
 <IfModule mod_headers.c>
-    # CSP: Solo permite cargar contenido del propio origen
-    Header set Content-Security-Policy "default-src 'self';"
+    # CSP: Solo permite carga de recursos del mismo dominio
+    Header always set Content-Security-Policy "default-src 'self';"
 
-    # HSTS: Obliga al navegador a usar siempre HTTPS por seguridad
+    # HSTS: Obliga al navegador a usar HTTPS durante 2 años
     Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
 </IfModule>
 ```
 
-### Dockerfile
-Se utiliza la estrategia de capas solicitada, creando una base segura para las siguientes prácticas.
+## 3. Dockerfile (Imagen Base)
+Configura el servidor Apache, instala los certificados y aplica el hardening inicial.
+
 ```dockerfile
 FROM php:7.4-apache
 
@@ -32,11 +42,11 @@ RUN a2dismod autoindex -f
 RUN a2enmod headers ssl
 
 # Copiar certificados digitales
-COPY apache-selfsigned.crt /etc/ssl/certs/
-COPY apache-selfsigned.key /etc/ssl/private/
+COPY ssl/apache-selfsigned.crt /etc/ssl/certs/
+COPY ssl/apache-selfsigned.key /etc/ssl/private/
 
 # Aplicar cabeceras y configurar sitio SSL
-COPY security-headers.conf /etc/apache2/conf-available/security-headers.conf
+COPY conf/security-headers.conf /etc/apache2/conf-available/security-headers.conf
 RUN a2enconf security-headers
 
 RUN sed -i 's|/etc/ssl/certs/ssl-cert-snakeoil.pem|/etc/ssl/certs/apache-selfsigned.crt|g' /etc/apache2/sites-available/default-ssl.conf && \
@@ -50,31 +60,34 @@ EXPOSE 80
 EXPOSE 443
 ```
 
-## 3. Instrucciones de Despliegue
+## 4. Despliegue y uso
 
-1. **Generar el certificado digital**:
-   ```bash
-   openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout apache-selfsigned.key -out apache-selfsigned.crt -subj "/C=ES/ST=Castellon/L=Castellon/O=M4raa/CN=localhost"
-   ```
-
-2. **Construir la imagen** (Nomenclatura pps/prX):
+1. **Construir la imagen**:
    ```bash
    docker build -t m4raa/pps:pr1 .
    ```
 
-3. **Subir a Docker Hub**:
+2. **Subir a Docker Hub**:
    ```bash
    docker push m4raa/pps:pr1
    ```
 
-4. **Ejecutar el contenedor**:
+3. **Ejecutar el contenedor**:
    ```bash
-   docker run --detach --rm -p 8080:80 -p 8081:443 --name="hardenowasp" m4raa/pps:pr1
+   docker run -d -p 41080:80 -p 41443:443 --name pps_pr1 m4raa/pps:pr1
    ```
 
-## 4. Validación de la Práctica
-![Captura de pantalla de la validación](assets/image.png)
+## 5. Validación
+Verifica que las cabeceras estén activas con el siguiente comando:
 
+```bash
+curl -k -I https://localhost:41443
+```
 
-## 5. URL Docker Hub
-Imagen disponible para pull en: [m4raa/pps:pr1](https://hub.docker.com/r/m4raa/pps)
+**Resultado esperado**: Deben aparecer las líneas `Content-Security-Policy` y `Strict-Transport-Security`.
+
+**Evidencia**:
+![Validación](assets/image.png)
+
+## 6. URL Docker Hub
+[m4raa/pps:pr1](https://hub.docker.com/repository/docker/m4raa/pps/tags/pr1)
