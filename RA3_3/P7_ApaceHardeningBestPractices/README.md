@@ -50,11 +50,18 @@ Esta práctica representa la culminación del despliegue seguro, integrando:
 ## 4. Despliegue y uso
 
 1. **DNS Local**: Añada `127.0.0.1 www.m4raa.com` a su archivo `/etc/hosts`.
+
 2. **Construir la imagen**:
    ```bash
    docker build -t m4raa/pps:pr7 .
    ```
-3. **Ejecutar el contenedor (Puertos 47080 y 47443)**:
+
+3. **Subir a Docker Hub**:
+   ```bash
+   docker push m4raa/pps:pr7
+   ```
+
+4. **Ejecutar el contenedor (Puertos 47080 y 47443)**:
    ```bash
    docker run -d -p 47080:80 -p 47443:443 --name pps_pr7 m4raa/pps:pr7
    ```

@@ -73,14 +73,14 @@ Añada la siguiente línea al archivo de hosts de su sistema operativo:
    docker build -t m4raa/pps:pr6 .
    ```
 
-2. **Ejecutar el contenedor (Puertos 46080 y 46443)**:
-   ```bash
-   docker run -d -p 46080:80 -p 46443:443 --name pps_pr6 m4raa/pps:pr6
-   ```
-
-3. **Subir a Docker Hub**:
+2. **Subir a Docker Hub**:
    ```bash
    docker push m4raa/pps:pr6
+   ```
+
+3. **Ejecutar el contenedor (Puertos 46080 y 46443)**:
+   ```bash
+   docker run -d -p 46080:80 -p 46443:443 --name pps_pr6 m4raa/pps:pr6
    ```
 
 ## 5. Validación
